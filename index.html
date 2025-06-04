@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF a HTML y Redimensionador</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.3.136/pdf.min.mjs" type="module"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .pdf-page-canvas {
+            display: block;
+            margin: 1rem auto;
+            border: 1px solid #ccc;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            max-width: 100%;
+            height: auto;
+        }
+        .loader {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #3498db;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .message-modal {
+            position: fixed; top: 20px; left: 50%;
+            transform: translateX(-50%);
+            padding: 1rem 1.5rem; border-radius: 0.375rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            z-index: 50; opacity: 0; transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+            pointer-events: none;
+        }
+        .message-modal.show { opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: auto; }
+        .message-modal.success { background-color: #d1fae5; color: #065f46; }
+        .message-modal.error { background-color: #fee2e2; color: #991b1b; }
+        .message-modal.info { background-color: #e0f2fe; color: #075985; }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 p-4 md:p-8">
+    <div class="container mx-auto max-w-4xl bg-white p-6 md:p-8 rounded-xl shadow-2xl">
+        <header class="mb-8 text-center">
+            <h1 class="text-2xl md:text-3xl font-bold text-sky-600">Conversor PDF a HTML y Redimensionador</h1>
+            <p class="text-slate-600 mt-2">Sube tu PDF, ajusta dimensiones y exporta como HTML.</p>
+        </header>
+
+        <section id="uploadSection" class="mb-8 p-6 bg-slate-50 rounded-lg shadow">
+            <h2 class="text-xl font-semibold text-sky-700 mb-4">1. Cargar PDF</h2>
+            <div class="flex flex-col sm:flex-row items-center gap-4">
+                <input type="file" id="pdfFile" accept=".pdf" class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-sky-50 file:text-sky-700 hover:file:bg-sky-100 cursor-pointer border border-slate-300 rounded-lg p-2 flex-grow"/>
+                <button id="loadPdfButton" class="w-full sm:w-auto bg-sky-500 hover:bg-sky-600 text-white font-bold py-2 px-6 rounded-lg shadow transition duration-150 ease-in-out">
+                    Cargar PDF
+                </button>
+            </div>
+        </section>
+
+        <div id="loader" class="loader hidden my-6"></div>
+        <p id="loadingStatus" class="text-center text-sky-600 hidden"></p>
+
+        <section id="dimensionControls" class="mb-8 p-6 bg-slate-50 rounded-lg shadow hidden">
+            <h2 class="text-xl font-semibold text-sky-700 mb-4">2. Ajustar Dimensiones</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3 items-end">
+                <div>
+                    <label for="outputWidth" class="block text-sm font-medium text-slate-700 mb-1">Ancho deseado (px):</label>
+                    <input type="number" id="outputWidth" value="800" min="50" placeholder="Ej: 800" class="border border-slate-300 rounded-lg p-2 w-full text-center">
+                </div>
+                <div>
+                    <label for="outputHeight" class="block text-sm font-medium text-slate-700 mb-1">Alto deseado (px) (opcional):</label>
+                    <input type="number" id="outputHeight" min="50" placeholder="Automático si vacío" class="border border-slate-300 rounded-lg p-2 w-full text-center">
+                </div>
+                <div class="sm:col-span-2 text-center sm:text-right mt-3">
+                    <button id="applyDimensionsButton" class="w-full sm:w-auto bg-amber-500 hover:bg-amber-600 text-white font-bold py-2 px-6 rounded-lg shadow transition duration-150 ease-in-out">
+                        Aplicar Dimensiones
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <section id="previewSection" class="mb-8 hidden">
+            <h2 class="text-xl font-semibold text-sky-700 mb-4 text-center">3. Previsualización del PDF</h2>
+            <div id="pdfPreviewContainer" class="bg-slate-200 p-4 rounded-lg shadow-inner overflow-auto"></div>
+        </section>
+
+        <section id="exportAndClearSection" class="text-center hidden p-6 bg-slate-50 rounded-lg shadow">
+             <h2 class="text-xl font-semibold text-sky-700 mb-4">4. Finalizar</h2>
+             <div class="flex flex-col sm:flex-row justify-center items-center gap-4">
+                <button id="exportHtmlButton" class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-8 rounded-lg shadow-lg transition duration-150 ease-in-out text-lg">
+                    Exportar a HTML
+                </button>
+                <button id="clearAndLoadNewButton" class="bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-8 rounded-lg shadow-lg transition duration-150 ease-in-out text-lg">
+                    Limpiar y Cargar Nuevo
+                </button>
+            </div>
+        </section>
+    </div>
+
+    <div id="messageModal" class="message-modal">
+        <span id="messageText"></span>
+    </div>
+
+    <script type="module">
+        const { pdfjsLib } = globalThis;
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.3.136/pdf.worker.min.mjs';
+
+        const pdfFileInput = document.getElementById('pdfFile');
+        const loadPdfButton = document.getElementById('loadPdfButton');
+        const loader = document.getElementById('loader');
+        const loadingStatus = document.getElementById('loadingStatus');
+        const dimensionControlsSection = document.getElementById('dimensionControls');
+        const outputWidthInput = document.getElementById('outputWidth');
+        const outputHeightInput = document.getElementById('outputHeight');
+        const applyDimensionsButton = document.getElementById('applyDimensionsButton');
+        const previewSection = document.getElementById('previewSection');
+        const pdfPreviewContainer = document.getElementById('pdfPreviewContainer');
+        const exportAndClearSection = document.getElementById('exportAndClearSection');
+        const exportHtmlButton = document.getElementById('exportHtmlButton');
+        const clearAndLoadNewButton = document.getElementById('clearAndLoadNewButton');
+        const messageModal = document.getElementById('messageModal');
+        const messageText = document.getElementById('messageText');
+        let currentPdfDocument = null;
+        let pageRenderData = []; 
+
+        function showMessage(message, type = 'success', duration = 3000) {
+            messageText.textContent = message;
+            messageModal.className = 'message-modal'; 
+            messageModal.classList.add(type, 'show');
+            setTimeout(() => messageModal.classList.remove('show'), duration);
+        }
+
+        function resetApplicationState() {
+            pdfPreviewContainer.innerHTML = '';
+            dimensionControlsSection.classList.add('hidden');
+            previewSection.classList.add('hidden');
+            exportAndClearSection.classList.add('hidden');
+            pdfFileInput.value = null;
+            currentPdfDocument = null;
+            pageRenderData = [];
+            outputWidthInput.value = "800"; 
+            outputHeightInput.value = ""; 
+        }
+
+        loadPdfButton.addEventListener('click', () => {
+            if (pdfFileInput.files.length === 0) { showMessage('Selecciona un archivo PDF.', 'error'); return; }
+            const file = pdfFileInput.files[0];
+            const fileReader = new FileReader();
+
+            fileReader.onload = async function() {
+                loader.classList.remove('hidden');
+                loadingStatus.textContent = 'Cargando PDF...';
+                loadingStatus.classList.remove('hidden');
+                resetApplicationState();
+
+                try {
+                    const typedarray = new Uint8Array(this.result);
+                    currentPdfDocument = await pdfjsLib.getDocument({ data: typedarray }).promise;
+                    loadingStatus.textContent = `Renderizando ${currentPdfDocument.numPages} páginas...`;
+                    await renderAllPages(currentPdfDocument, parseFloat(outputWidthInput.value), parseFloat(outputHeightInput.value)); 
+                    dimensionControlsSection.classList.remove('hidden');
+                    previewSection.classList.remove('hidden');
+                    exportAndClearSection.classList.remove('hidden');
+                    showMessage('PDF cargado.', 'success');
+                } catch (error) {
+                    console.error(error);
+                    showMessage(`Error: ${error.message}`, 'error');
+                    currentPdfDocument = null;
+                }
+            };
+            fileReader.readAsArrayBuffer(file);
+        });
+
+        async function renderAllPages(pdfDoc, targetWidth, targetHeight) {
+            pdfPreviewContainer.innerHTML = ''; 
+            pageRenderData = [];
+            loader.classList.remove('hidden');
+            loadingStatus.classList.remove('hidden'); 
+
+            for (let pageNum = 1; pageNum <= pdfDoc.numPages; pageNum++) {
+                loadingStatus.textContent = `Renderizando página ${pageNum}...`;
+                const page = await pdfDoc.getPage(pageNum);
+                const viewport = page.getViewport({ scale: 1.0 }); 
+                let scale = targetWidth / viewport.width;
+                if (!targetWidth) scale = 1.0;
+                const scaledViewport = page.getViewport({ scale: scale });
+                const canvas = document.createElement('canvas');
+                canvas.className = 'pdf-page-canvas';
+                const context = canvas.getContext('2d');
+                canvas.height = scaledViewport.height;
+                canvas.width = scaledViewport.width;
+                await page.render({ canvasContext: context, viewport: scaledViewport }).promise;
+                pdfPreviewContainer.appendChild(canvas);
+                pageRenderData.push({ canvas: canvas, viewport: viewport, scale: scale });
+            }
+            loadingStatus.classList.add('hidden');
+            loader.classList.add('hidden');
+        }
+
+        applyDimensionsButton.addEventListener('click', async () => {
+            if (!currentPdfDocument) { showMessage('Carga un PDF primero.', 'error'); return; }
+            await renderAllPages(currentPdfDocument, parseFloat(outputWidthInput.value), parseFloat(outputHeightInput.value));
+            showMessage('Dimensiones aplicadas.', 'success');
+        });
+
+        clearAndLoadNewButton.addEventListener('click', () => {
+            resetApplicationState();
+            showMessage('Listo para nuevo archivo.', 'info');
+        });
+
+        exportHtmlButton.addEventListener('click', () => {
+            if (pageRenderData.length === 0) { showMessage('Nada para exportar.', 'error'); return; }
+            const originalFileName = pdfFileInput.files.length ? pdfFileInput.files[0].name.replace(/\.pdf$/i, '') : "documento";
+            const cleanTitle = originalFileName.replace(/[^\w\s.-]/gi, '_');
+            let htmlContent = `<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>${cleanTitle}</title></head><body>`;
+            pageRenderData.forEach((data, index) => {
+                const imgDataUrl = data.canvas.toDataURL('image/png'); 
+                htmlContent += `<img src="${imgDataUrl}" alt="Página ${index + 1}" style="max-width:100%;">\n`;
+            });
+            htmlContent += `</body></html>`;
+            const blob = new Blob([htmlContent], { type: 'text/html' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `${cleanTitle}.html`; 
+            document.body.appendChild(link); link.click(); document.body.removeChild(link);
+            URL.revokeObjectURL(link.href);
+            showMessage('HTML exportado.', 'success');
+        });
+    </script>
+</body>
+</html>
