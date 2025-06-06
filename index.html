@@ -4,20 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PDF Converter</title>
-
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-
     <!-- PDF.js CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.3.136/pdf.min.mjs" type="module"></script>
-
     <!-- Google Fonts: Montserrat and Roboto Mono -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Roboto+Mono:wght@400&display=swap" rel="stylesheet">
-
     <style>
-        body{font-family:'Montserrat','Inter',sans-serif;}
+        body {font-family:'Montserrat','Inter',sans-serif;}
         .pdf-page-canvas{display:block;margin:1rem auto;border:1px solid #ccc;box-shadow:0 4px 8px rgba(0,0,0,.1);max-width:100%;height:auto;}
         .loader{border:5px solid #f3f3f3;border-top:5px solid #3498db;border-radius:50%;width:50px;height:50px;animation:spin 1s linear infinite;margin:20px auto;}
         @keyframes spin{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}
@@ -31,7 +27,6 @@
 </head>
 <body class="bg-slate-100 text-slate-800 p-4 md:p-8">
     <div class="container mx-auto max-w-4xl bg-white p-6 md:p-8 rounded-xl shadow-2xl">
-
         <!-- Language selector -->
         <div class="flex justify-end mb-4">
             <label for="languageSelector" class="mr-2 text-sm text-slate-600 self-center" data-translate-key="langLabel">Language:</label>
@@ -43,7 +38,7 @@
 
         <!-- Header -->
         <header class="mb-8 text-center">
-            <h1 id="mainTitle" class="text-3xl md:text-4xl font-bold text-sky-600" style="font-family:'Montserrat',sans-serif;" data-translate-key="mainTitle">PDF Converter</h1>
+            <h1 id="mainTitle" class="text-3xl md:text-4xl font-bold text-sky-600" data-translate-key="mainTitle">PDF Converter</h1>
             <p id="appSubtitle" class="text-slate-600 mt-2" data-translate-key="appSubtitle">Upload your PDF, adjust dimensions, and export as HTML.</p>
         </header>
 
@@ -51,12 +46,17 @@
         <section id="uploadSection" class="mb-8 p-6 bg-slate-50 rounded-lg shadow">
             <h2 class="text-xl font-semibold text-sky-700 mb-4" data-translate-key="uploadTitle">1. Upload PDF</h2>
             <div class="flex flex-col sm:flex-row items-center gap-4">
-                <input type="file" id="pdfFile" accept=".pdf" class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-sky-50 file:text-sky-700 hover:file:bg-sky-100 cursor-pointer border border-slate-300 rounded-lg p-2 flex-grow"/>
-                <button id="loadPdfButton" class="w-full sm:w-auto bg-sky-500 hover:bg-sky-600 text-white font-bold py-2 px-6 rounded-lg shadow transition duration-150 ease-in-out" data-translate-key="loadPdfButton">Load PDF</button>
+                <!-- Custom file input -->
+                <label for="pdfFile" class="flex-grow w-full sm:w-auto text-sm text-slate-500 cursor-pointer border border-slate-300 rounded-lg p-2 flex items-center justify-between bg-white hover:bg-slate-50">
+                    <span id="fileNameDisplay" class="text-slate-700 truncate pr-2" data-translate-key="noFileChosen">No file chosen...</span>
+                    <span class="bg-sky-100 text-sky-800 font-semibold rounded-md px-3 py-1 text-xs" data-translate-key="browseButton">Browse</span>
+                </label>
+                <input type="file" id="pdfFile" accept=".pdf" class="hidden"/>
+
+                <button id="loadPdfButton" class="w-full sm:w-auto bg-sky-500 hover:bg-sky-600 text-white font-bold py-2 px-6 rounded-lg shadow transition" data-translate-key="loadPdfButton">Load PDF</button>
             </div>
         </section>
 
-        <!-- Loader -->
         <div id="loader" class="loader hidden my-6"></div>
         <p id="loadingStatus" class="text-center text-sky-600 hidden"></p>
 
@@ -73,7 +73,7 @@
                     <input type="number" id="outputHeight" min="50" class="border border-slate-300 rounded-lg p-2 w-full text-center" data-translate-key-placeholder="heightPlaceholder">
                 </div>
                 <div class="sm:col-span-2 text-center sm:text-right mt-3">
-                    <button id="applyDimensionsButton" class="w-full sm:w-auto bg-amber-500 hover:bg-amber-600 text-white font-bold py-2 px-6 rounded-lg shadow transition duration-150 ease-in-out" data-translate-key="applyDimensionsButton">Apply Dimensions</button>
+                    <button id="applyDimensionsButton" class="w-full sm:w-auto bg-amber-500 hover:bg-amber-600 text-white font-bold py-2 px-6 rounded-lg shadow transition" data-translate-key="applyDimensionsButton">Apply Dimensions</button>
                 </div>
             </div>
         </section>
@@ -88,8 +88,8 @@
         <section id="exportAndClearSection" class="text-center hidden p-6 bg-slate-50 rounded-lg shadow">
             <h2 class="text-xl font-semibold text-sky-700 mb-4" data-translate-key="finalizeTitle">4. Finalize</h2>
             <div class="flex flex-col sm:flex-row justify-center items-center gap-4">
-                <button id="exportHtmlButton" class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-8 rounded-lg shadow-lg transition duration-150 ease-in-out text-lg" data-translate-key="exportHtmlButton">Export to HTML</button>
-                <button id="clearAndLoadNewButton" class="bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-8 rounded-lg shadow-lg transition duration-150 ease-in-out text-lg" data-translate-key="clearAndLoadNewButton">Clear and Load New</button>
+                <button id="exportHtmlButton" class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-8 rounded-lg shadow-lg transition" data-translate-key="exportHtmlButton">Export to HTML</button>
+                <button id="clearAndLoadNewButton" class="bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-8 rounded-lg shadow-lg transition" data-translate-key="clearAndLoadNewButton">Clear and Load New</button>
             </div>
         </section>
 
@@ -98,136 +98,106 @@
         <!-- Footer -->
         <footer class="text-center text-sm text-slate-500 pt-4">
             <p class="footer-text">
-                Designed by Hitster Ai - <a href="mailto:baez@hitster.page" class="text-sky-600 hover:text-sky-700 underline">baez@hitster.page</a>
+                Designed by Hitster Ai —
+                <a href="mailto:baez@hitster.page" class="text-sky-600 hover:text-sky-700 underline">baez@hitster.page</a>
             </p>
         </footer>
     </div>
 
     <!-- Modal -->
-    <div id="messageModal" class="message-modal">
-        <span id="messageText"></span>
-    </div>
+    <div id="messageModal" class="message-modal"><span id="messageText"></span></div>
 
     <script type="module">
-        // PDF.js setup
         const { pdfjsLib } = globalThis;
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.3.136/pdf.worker.min.mjs';
+        pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.3.136/pdf.worker.min.mjs';
 
-        // Translations
-        const uiStrings = {
-            es:{pageTitle:"PDF Converter",mainTitle:"PDF Converter",appSubtitle:"Sube tu PDF, ajusta dimensiones y exporta como HTML.",langLabel:"Idioma:",uploadTitle:"1. Cargar PDF",loadPdfButton:"Cargar PDF",dimensionsTitle:"2. Ajustar Dimensiones",widthLabel:"Ancho deseado (px):",widthPlaceholder:"Ej: 800",heightLabel:"Alto deseado (px) (opcional):",heightPlaceholder:"Automático si vacío",applyDimensionsButton:"Aplicar Dimensiones",previewTitle:"3. Previsualización del PDF",finalizeTitle:"4. Finalizar",exportHtmlButton:"Exportar a HTML",clearAndLoadNewButton:"Limpiar y Cargar Nuevo",selectPdfFirst:"Por favor, selecciona un archivo PDF primero.",pdfLoading:"Cargando PDF...",pdfLoadedProcessing:"PDF cargado. Renderizando ${numPages} páginas...",pdfLoadError:"Error al procesar PDF: ${errorMessage}",pdfLoadSuccess:"PDF cargado y procesado exitosamente.",renderingPage:"Renderizando página ${pageNum} de ${totalPages}...",renderingPageError:"Error al renderizar página ${pageNum}.",allPagesRendered:"Todas las páginas renderizadas.",loadPdfFirst:"Carga un PDF primero.",invalidWidth:"El ancho introducido no es válido (mínimo 50px).",invalidHeight:"El alto introducido no es válido (mínimo 50px).",enterDimension:"Debes ingresar al menos un ancho o un alto para aplicar.",dimensionsApplied:"Dimensiones aplicadas.",readyToLoadNew:"Listo para cargar un nuevo archivo PDF.",noPagesToExport:"No hay páginas renderizadas para exportar.",exportSuccess:"HTML exportado exitosamente.",errorGeneratingHtml:"Error al generar el archivo HTML para descargar."},
-            en:{pageTitle:"PDF Converter",mainTitle:"PDF Converter",appSubtitle:"Upload your PDF, adjust dimensions, and export as HTML.",langLabel:"Language:",uploadTitle:"1. Upload PDF",loadPdfButton:"Load PDF",dimensionsTitle:"2. Adjust Dimensions",widthLabel:"Desired width (px):",widthPlaceholder:"Eg: 800",heightLabel:"Desired height (px) (optional):",heightPlaceholder:"Auto if empty",applyDimensionsButton:"Apply Dimensions",previewTitle:"3. PDF Preview",finalizeTitle:"4. Finalize",exportHtmlButton:"Export to HTML",clearAndLoadNewButton:"Clear and Load New",selectPdfFirst:"Please select a PDF file first.",pdfLoading:"Loading PDF...",pdfLoadedProcessing:"PDF loaded. Rendering ${numPages} pages...",pdfLoadError:"Error processing PDF: ${errorMessage}",pdfLoadSuccess:"PDF loaded and processed successfully.",renderingPage:"Rendering page ${pageNum} of ${totalPages}...",renderingPageError:"Error rendering page ${pageNum}.",allPagesRendered:"All pages rendered.",loadPdfFirst:"Load a PDF first.",invalidWidth:"The entered width is invalid (minimum 50px).",invalidHeight:"The entered height is invalid (minimum 50px).",enterDimension:"You must enter at least a width or a height to apply.",dimensionsApplied:"Dimensions applied.",readyToLoadNew:"Ready to load a new PDF file.",noPagesToExport:"No pages rendered to export.",exportSuccess:"HTML exported successfully.",errorGeneratingHtml:"Error generating the HTML file for download."}
-        };
-
+        /* UI STRINGS */
+        const uiStrings={es:{pageTitle:"PDF Converter",mainTitle:"PDF Converter",appSubtitle:"Sube tu PDF, ajusta dimensiones y exporta como HTML.",langLabel:"Idioma:",uploadTitle:"1. Cargar PDF",browseButton:"Explorar",noFileChosen:"Ningún archivo seleccionado...",loadPdfButton:"Cargar PDF",dimensionsTitle:"2. Ajustar Dimensiones",widthLabel:"Ancho deseado (px):",widthPlaceholder:"Ej: 800",heightLabel:"Alto deseado (px) (opcional):",heightPlaceholder:"Automático si vacío",applyDimensionsButton:"Aplicar Dimensiones",previewTitle:"3. Previsualización del PDF",finalizeTitle:"4. Finalizar",exportHtmlButton:"Exportar a HTML",clearAndLoadNewButton:"Limpiar y Cargar Nuevo",selectPdfFirst:"Por favor, selecciona un archivo PDF primero.",pdfLoading:"Cargando PDF...",pdfLoadedProcessing:"PDF cargado. Renderizando ${numPages} páginas...",pdfLoadError:"Error al procesar PDF: ${errorMessage}",pdfLoadSuccess:"PDF cargado y procesado exitosamente.",renderingPage:"Renderizando página ${pageNum} de ${totalPages}...",renderingPageError:"Error al renderizar página ${pageNum}.",allPagesRendered:"Todas las páginas renderizadas.",loadPdfFirst:"Carga un PDF primero.",invalidWidth:"El ancho introducido no es válido (mínimo 50px).",invalidHeight:"El alto introducido no es válido (mínimo 50px).",enterDimension:"Debes ingresar al menos un ancho o un alto para aplicar.",dimensionsApplied:"Dimensiones aplicadas.",readyToLoadNew:"Listo para cargar un nuevo archivo PDF.",noPagesToExport:"No hay páginas renderizadas para exportar.",exportSuccess:"HTML exportado exitosamente.",errorGeneratingHtml:"Error al generar el archivo HTML para descargar."},
+        en:{pageTitle:"PDF Converter",mainTitle:"PDF Converter",appSubtitle:"Upload your PDF, adjust dimensions, and export as HTML.",langLabel:"Language:",uploadTitle:"1. Upload PDF",browseButton:"Browse",noFileChosen:"No file chosen...",loadPdfButton:"Load PDF",dimensionsTitle:"2. Adjust Dimensions",widthLabel:"Desired width (px):",widthPlaceholder:"Eg: 800",heightLabel:"Desired height (px) (optional):",heightPlaceholder:"Auto if empty",applyDimensionsButton:"Apply Dimensions",previewTitle:"3. PDF Preview",finalizeTitle:"4. Finalize",exportHtmlButton:"Export to HTML",clearAndLoadNewButton:"Clear and Load New",selectPdfFirst:"Please select a PDF file first.",pdfLoading:"Loading PDF...",pdfLoadedProcessing:"PDF loaded. Rendering ${numPages} pages...",pdfLoadError:"Error processing PDF: ${errorMessage}",pdfLoadSuccess:"PDF loaded and processed successfully.",renderingPage:"Rendering page ${pageNum} of ${totalPages}...",renderingPageError:"Error rendering page ${pageNum}.",allPagesRendered:"All pages rendered.",loadPdfFirst:"Load a PDF first.",invalidWidth:"The entered width is invalid (minimum 50px).",invalidHeight:"The entered height is invalid (minimum 50px).",enterDimension:"You must enter at least a width or a height to apply.",dimensionsApplied:"Dimensions applied.",readyToLoadNew:"Ready to load a new PDF file.",noPagesToExport:"No pages rendered to export.",exportSuccess:"HTML exported successfully.",errorGeneratingHtml:"Error generating the HTML file for download."}};
         let currentPdfDocument=null,pageRenderData=[],currentLanguage='en';
 
-        document.addEventListener('DOMContentLoaded',()=>{initializeApp();});
+        document.addEventListener('DOMContentLoaded',()=>init());
 
-        function initializeApp(){
-            const pdfFileInput=document.getElementById('pdfFile'),
-                  loadPdfButton=document.getElementById('loadPdfButton'),
-                  loader=document.getElementById('loader'),
-                  loadingStatus=document.getElementById('loadingStatus'),
-                  dimensionControlsSection=document.getElementById('dimensionControls'),
-                  outputWidthInput=document.getElementById('outputWidth'),
-                  outputHeightInput=document.getElementById('outputHeight'),
-                  applyDimensionsButton=document.getElementById('applyDimensionsButton'),
-                  previewSection=document.getElementById('previewSection'),
-                  pdfPreviewContainer=document.getElementById('pdfPreviewContainer'),
-                  exportAndClearSection=document.getElementById('exportAndClearSection'),
-                  exportHtmlButton=document.getElementById('exportHtmlButton'),
-                  clearAndLoadNewButton=document.getElementById('clearAndLoadNewButton'),
-                  messageModal=document.getElementById('messageModal'),
-                  messageText=document.getElementById('messageText'),
-                  languageSelector=document.getElementById('languageSelector');
+        function init(){
+            const $=id=>document.getElementById(id);
+            const pdfFileInput=$('pdfFile'),fileNameDisplay=$('fileNameDisplay'),loadBtn=$('loadPdfButton'),
+                  loader=$('loader'),loadingStatus=$('loadingStatus'),dimensionControls=$('dimensionControls'),
+                  outW=$('outputWidth'),outH=$('outputHeight'),applyBtn=$('applyDimensionsButton'),
+                  previewSection=$('previewSection'),pdfContainer=$('pdfPreviewContainer'),
+                  exportSection=$('exportAndClearSection'),exportBtn=$('exportHtmlButton'),clearBtn=$('clearAndLoadNewButton'),
+                  msgModal=$('messageModal'),msgText=$('messageText'),langSel=$('languageSelector');
 
-            const showMessage=(key,type='success',duration=3000,params={})=>{
-                let msg=uiStrings[currentLanguage][key]||key;
-                Object.keys(params).forEach(p=>{msg=msg.replace(`\${${p}}`,params[p]);});
-                messageText.textContent=msg;
-                messageModal.className='message-modal';
-                messageModal.classList.add(type,'show');
-                setTimeout(()=>messageModal.classList.remove('show'),duration);
+            const msg=(k,type='success',dur=3000,p={})=>{
+                let m=uiStrings[currentLanguage][k]||k;
+                Object.keys(p).forEach(key=>m=m.replace(`\${${key}}`,p[key]));
+                msgText.textContent=m;msgModal.className='message-modal';msgModal.classList.add(type,'show');
+                setTimeout(()=>msgModal.classList.remove('show'),dur);
             };
 
-            const updateLanguageTexts=lang=>{
-                currentLanguage=lang;
-                document.documentElement.lang=lang;
-                document.title=uiStrings[lang].pageTitle;
-                document.querySelectorAll('[data-translate-key]').forEach(el=>{
-                    const k=el.dataset.translateKey;
-                    if(uiStrings[lang][k])el.textContent=uiStrings[lang][k];
-                });
-                outputWidthInput.placeholder=uiStrings[lang].widthPlaceholder;
-                outputHeightInput.placeholder=uiStrings[lang].heightPlaceholder;
+            const setLang=l=>{
+                currentLanguage=l;document.documentElement.lang=l;document.title=uiStrings[l].pageTitle;
+                document.querySelectorAll('[data-translate-key]').forEach(e=>{const k=e.dataset.translateKey;if(uiStrings[l][k]&&e.id!=='fileNameDisplay')e.textContent=uiStrings[l][k];});
+                if(pdfFileInput.files.length===0)fileNameDisplay.textContent=uiStrings[l].noFileChosen;
+                outW.placeholder=uiStrings[l].widthPlaceholder;outH.placeholder=uiStrings[l].heightPlaceholder;
             };
-            languageSelector.addEventListener('change',e=>updateLanguageTexts(e.target.value));
-            updateLanguageTexts(currentLanguage);
+            langSel.addEventListener('change',e=>setLang(e.target.value));setLang(currentLanguage);
 
-            const resetApp=()=>{
-                pdfPreviewContainer.innerHTML='';
-                [dimensionControlsSection,previewSection,exportAndClearSection].forEach(el=>el.classList.add('hidden'));
-                pdfFileInput.value=null;currentPdfDocument=null;pageRenderData=[];
-                outputWidthInput.value="800";outputHeightInput.value="";
+            pdfFileInput.addEventListener('change',()=>{fileNameDisplay.textContent=pdfFileInput.files.length?pdfFileInput.files[0].name:uiStrings[currentLanguage].noFileChosen;});
+
+            const reset=()=>{
+                pdfContainer.innerHTML='';['hidden'].forEach(cl=>{dimensionControls.classList.add(cl);previewSection.classList.add(cl);exportSection.classList.add(cl);});
+                pdfFileInput.value=null;fileNameDisplay.textContent=uiStrings[currentLanguage].noFileChosen;currentPdfDocument=null;pageRenderData=[];outW.value="800";outH.value="";
             };
 
-            loadPdfButton.addEventListener('click',()=>{
-                if(pdfFileInput.files.length===0){showMessage('selectPdfFirst','error');return;}
-                const fileReader=new FileReader();
-                fileReader.onload=async function(){
+            loadBtn.addEventListener('click',()=>{
+                if(pdfFileInput.files.length===0){msg('selectPdfFirst','error');return;}
+                const fr=new FileReader();fr.onload=async()=>{
                     loader.classList.remove('hidden');loadingStatus.classList.remove('hidden');loadingStatus.textContent=uiStrings[currentLanguage].pdfLoading;
-                    resetApp();
+                    pdfContainer.innerHTML='';['hidden'].forEach(cl=>{dimensionControls.classList.add(cl);previewSection.classList.add(cl);exportSection.classList.add(cl);});
                     try{
-                        currentPdfDocument=await pdfjsLib.getDocument({data:new Uint8Array(this.result)}).promise;
+                        currentPdfDocument=await pdfjsLib.getDocument({data:new Uint8Array(fr.result)}).promise;
                         loadingStatus.textContent=uiStrings[currentLanguage].pdfLoadedProcessing.replace('${numPages}',currentPdfDocument.numPages);
-                        await renderAllPages(parseFloat(outputWidthInput.value),parseFloat(outputHeightInput.value));
-                        [dimensionControlsSection,previewSection,exportAndClearSection].forEach(el=>el.classList.remove('hidden'));
-                        showMessage('pdfLoadSuccess','success');
-                    }catch(e){console.error(e);showMessage('pdfLoadError','error',5000,{errorMessage:e.message});}
-                };
-                fileReader.readAsArrayBuffer(pdfFileInput.files[0]);
+                        await renderAll(parseFloat(outW.value),parseFloat(outH.value));
+                        ['hidden'].forEach(cl=>{dimensionControls.classList.remove(cl);previewSection.classList.remove(cl);exportSection.classList.remove(cl);});
+                        msg('pdfLoadSuccess','success');
+                    }catch(e){console.error(e);msg('pdfLoadError','error',5000,{errorMessage:e.message});reset();}
+                };fr.readAsArrayBuffer(pdfFileInput.files[0]);
             });
 
-            const renderAllPages=async(targetWidth,targetHeight)=>{
-                pdfPreviewContainer.innerHTML='';pageRenderData=[];loader.classList.remove('hidden');loadingStatus.classList.remove('hidden');
+            const renderAll=async(w,h)=>{
+                pdfContainer.innerHTML='';pageRenderData=[];loader.classList.remove('hidden');loadingStatus.classList.remove('hidden');
                 for(let i=1;i<=currentPdfDocument.numPages;i++){
                     loadingStatus.textContent=uiStrings[currentLanguage].renderingPage.replace('${pageNum}',i).replace('${totalPages}',currentPdfDocument.numPages);
                     try{
-                        const page=await currentPdfDocument.getPage(i),origViewport=page.getViewport({scale:1});
-                        let scale=1;if(targetWidth||targetHeight){
-                            const wValid=targetWidth&&!isNaN(targetWidth)&&targetWidth>0,hValid=targetHeight&&!isNaN(targetHeight)&&targetHeight>0;
-                            if(wValid&&hValid){scale=Math.min(targetWidth/origViewport.width,targetHeight/origViewport.height);}
-                            else if(wValid){scale=targetWidth/origViewport.width;}
-                            else if(hValid){scale=targetHeight/origViewport.height;}
-                        }
-                        const viewport=page.getViewport({scale});
-                        const canvas=document.createElement('canvas');canvas.className='pdf-page-canvas';canvas.width=viewport.width;canvas.height=viewport.height;
-                        await page.render({canvasContext:canvas.getContext('2d'),viewport}).promise;
-                        pdfPreviewContainer.appendChild(canvas);pageRenderData.push(canvas);
-                    }catch(err){console.error(err);const p=document.createElement('p');p.textContent=uiStrings[currentLanguage].renderingPageError.replace('${pageNum}',i);p.className='text-red-500 text-center';pdfPreviewContainer.appendChild(p);}
+                        const page=await currentPdfDocument.getPage(i),vp=page.getViewport({scale:1});
+                        let s=1;if(w||h){const vw=w&&!isNaN(w)&&w>0,vh=h&&!isNaN(h)&&h>0;
+                            if(vw&&vh)s=Math.min(w/vp.width,h/vp.height);else if(vw)s=w/vp.width;else if(vh)s=h/vp.height;}
+                        const cv=page.getViewport({scale:s}),canvas=document.createElement('canvas');canvas.className='pdf-page-canvas';canvas.width=cv.width;canvas.height=cv.height;
+                        await page.render({canvasContext:canvas.getContext('2d'),viewport:cv}).promise;
+                        pdfContainer.appendChild(canvas);pageRenderData.push(canvas);
+                    }catch(e){console.error(e);const p=document.createElement('p');p.textContent=uiStrings[currentLanguage].renderingPageError.replace('${pageNum}',i);p.className='text-red-500 text-center';pdfContainer.appendChild(p);}
                 }
                 loadingStatus.textContent=uiStrings[currentLanguage].allPagesRendered;setTimeout(()=>{loader.classList.add('hidden');loadingStatus.classList.add('hidden');},1200);
             };
 
-            applyDimensionsButton.addEventListener('click',async()=>{
-                if(!currentPdfDocument){showMessage('loadPdfFirst','error');return;}
-                const w=parseFloat(outputWidthInput.value),h=parseFloat(outputHeightInput.value);
-                if((isNaN(w)||w<50)&&(isNaN(h)||h<50)){showMessage('enterDimension','info');return;}
-                if(!isNaN(w)&&w<50){showMessage('invalidWidth','error');return;}
-                if(!isNaN(h)&&h<50){showMessage('invalidHeight','error');return;}
-                await renderAllPages(w,h);showMessage('dimensionsApplied','success');
+            applyBtn.addEventListener('click',async()=>{
+                if(!currentPdfDocument){msg('loadPdfFirst','error');return;}
+                const w=parseFloat(outW.value),h=parseFloat(outH.value);
+                if((isNaN(w)||w<50)&&(isNaN(h)||h<50)){msg('enterDimension','info');return;}
+                if(!isNaN(w)&&w<50){msg('invalidWidth','error');return;}
+                if(!isNaN(h)&&h<50){msg('invalidHeight','error');return;}
+                await renderAll(w,h);msg('dimensionsApplied','success');
             });
 
-            clearAndLoadNewButton.addEventListener('click',()=>{resetApp();showMessage('readyToLoadNew','info');});
+            clearBtn.addEventListener('click',()=>{reset();msg('readyToLoadNew','info');});
 
-            exportHtmlButton.addEventListener('click',()=>{
-                if(pageRenderData.length===0){showMessage('noPagesToExport','error');return;}
+            exportBtn.addEventListener('click',()=>{
+                if(pageRenderData.length===0){msg('noPagesToExport','error');return;}
                 const name=(pdfFileInput.files[0]?.name||'document').replace(/\.pdf$/i,'').replace(/[^\w\s.-]/g,'_');
                 let html=`<!DOCTYPE html><html lang="${currentLanguage}"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>${name}</title><style>body{{margin:20px;background:#f0f0f0;font-family:sans-serif;text-align:center;}}img{{display:block;margin:15px auto;max-width:100%;box-shadow:0 0 10px rgba(0,0,0,.2);background:#fff;}}</style></head><body>`;
-                pageRenderData.forEach((c,i)=>{html+=`<img src="${c.toDataURL('image/png')}" alt="Page ${i+1}">`;});
+                pageRenderData.forEach((c,i)=>html+=`<img src="${c.toDataURL('image/png')}" alt="Page ${i+1}">`);
                 html+='</body></html>';
-                const blob=new Blob([html],{type:'text/html'}),a=document.createElement('a');
-                a.href=URL.createObjectURL(blob);a.download=`${name}.html`;document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(a.href);showMessage('exportSuccess','success');
+                const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([html],{type:'text/html'}));a.download=`${name}.html`;document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(a.href);msg('exportSuccess','success');
             });
         }
     </script>
