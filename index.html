@@ -155,9 +155,11 @@
         <hr class="my-8 border-slate-300">
 
         <footer class="text-center text-sm text-slate-500 pt-4">
-            <p class="footer-text">
-                Designed by Hitster Ai - 
-                <a href="mailto:baez@hitster.page" class="text-sky-600 hover:text-sky-700 underline">baez@hitster.page</a>
+            <p class="footer-text mb-2">
+                 <a href="mailto:baez@hitster.page" class="text-sky-600 hover:text-sky-700 underline" data-translate-key="contactUs">Contact Us</a>
+            </p>
+            <p class="footer-text" data-translate-key="rightsReserved">
+                All rights reserved &copy; 2025 Hitster Ai
             </p>
         </footer>
 
@@ -213,6 +215,8 @@
                 noPagesToExport: "No hay páginas renderizadas para exportar.",
                 exportSuccess: "HTML exportado exitosamente.",
                 errorGeneratingHtml: "Error al generar el archivo HTML para descargar.",
+                contactUs: "Contáctanos",
+                rightsReserved: "Todos los derechos reservados &copy; 2025 Hitster Ai"
             },
             en: {
                 pageTitle: "PDF Converter",
@@ -250,6 +254,8 @@
                 noPagesToExport: "No pages rendered to export.",
                 exportSuccess: "HTML exported successfully.",
                 errorGeneratingHtml: "Error generating the HTML file for download.",
+                contactUs: "Contact Us",
+                rightsReserved: "All rights reserved &copy; 2025 Hitster Ai"
             }
         };
         
@@ -464,7 +470,10 @@
             });
 
             exportHtmlButton.addEventListener('click', () => {
-                if (pageRenderData.length === 0) { showMessage('noPagesToExport', 'error'); return; }
+                if (pageRenderData.length === 0) { 
+                    showMessage('noPagesToExport', 'error'); 
+                    return; 
+                }
                 let originalFileName = "document";
                 if (pdfFileInput.files.length > 0) {
                     originalFileName = pdfFileInput.files[0].name.replace(/\.pdf$/i, '');
@@ -486,16 +495,21 @@
                     }
                 });
                 htmlContent += `</body></html>`;
+                
+                const blob = new Blob([htmlContent], { type: 'text/html' });
+
+                // Método de descarga universal y compatible
                 try {
-                    const blob = new Blob([htmlContent], { type: 'text/html' });
                     const link = document.createElement('a');
                     link.href = URL.createObjectURL(blob);
                     link.download = `${cleanTitle}.html`; 
-                    document.body.appendChild(link); link.click(); document.body.removeChild(link);
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
                     URL.revokeObjectURL(link.href); 
                     showMessage('exportSuccess', 'success');
                 } catch (exportError) {
-                    console.error("Error al crear el Blob o el enlace de descarga:", exportError);
+                    console.error("Error al crear el enlace de descarga:", exportError);
                     showMessage('errorGeneratingHtml', 'error');
                 }
             });
